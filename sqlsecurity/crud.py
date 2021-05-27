@@ -5,25 +5,23 @@ from fastapi.encoders import jsonable_encoder
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ----------------------------------------------------------------------------
-def get_password_hash(password) -> str:
+# --------------------password related task------------------------------------
+def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def check_password(password, hash_password):
+def check_password(password, hash_password) -> str:
     return pwd_context.verify(password, hash_password)
 
 
-# ----------------------------------------------------------------------------
-
-# ----------------------------------------------------------------------------
+# -----------------Reading user from database----------------------------------
 def read_user(db: Session, username):
     return db.query(models.Login).filter(models.Login.username == username).first()
 
 
-# ----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-# ----------------------------------------------------------------------------
+# -----Storing user in database------------------------------------------------
 def create_user(db: Session, create: schema.CreateUser):
     hashed_password = get_password_hash(create.password)
     db_user = models.Login(
@@ -41,3 +39,12 @@ def create_user(db: Session, create: schema.CreateUser):
 
 
 # ----------------------------------------------------------------------------
+
+
+def pass_user(db: Session, username):
+    user_value = (
+        db.query(models.Login).filter(models.Login.username == username).first()
+    )
+    user_dict = jsonable_encoder(user_value)
+    current_user = schema.User(**user_dict)
+    return current_user
